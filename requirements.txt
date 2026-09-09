@@ -56,8 +56,11 @@ httpx2
 # create_engine() and raises ModuleNotFoundError if missing. -binary avoids
 # needing libpq-dev/pg_config on the host/image to compile it.
 psycopg2-binary
-# Word (.docx) document extraction for the multimodal parser and DOCX
-# upload processing. python-docx provides full paragraph, heading, and
-# table extraction from .docx files without needing the optional markitdown
-# package. This is a core dependency so DOCX uploads are always readable.
+# Office document extraction — all three are core deps so DOCX/PPTX/XLSX
+# uploads are always readable without needing optional markitdown.
+# python-docx: Word (.docx) paragraphs, headings, and tables
+# python-pptx: PowerPoint (.pptx) slide text, notes, and tables
+# openpyxl:    Excel (.xlsx) cell values and sheets
 python-docx
+python-pptx
+openpyxl
