@@ -44,3 +44,18 @@ PyMuPDF
 # [all]/Azure/audio extras (cloud + heavy). Pinned to a release >30 days old per
 # the dependency-age discussion in issue #485.
 markitdown[docx,pptx,xlsx,xls]==0.1.6
+
+# Unlimited-OCR (baidu/Unlimited-OCR, MIT) — high-accuracy multilingual OCR
+# for scanned documents, P&IDs, handwritten notes, and printed text.
+# Requires NVIDIA GPU with CUDA. Model is 3B params (~6GB VRAM in BF16).
+# Downloads ~6GB model weights from HuggingFace on first use.
+# Install: pip install torch torchvision transformers==4.57.1 einops addict easydict psutil
+# Usage: automatic when user asks to "extract text" / "OCR" an uploaded image.
+# Source: https://huggingface.co/baidu/Unlimited-OCR
+torch
+torchvision
+transformers==4.57.1
+einops
+addict
+easydict
+psutil

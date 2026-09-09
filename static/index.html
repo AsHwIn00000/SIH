@@ -256,9 +256,9 @@
   <link rel="modulepreload" href="/static/js/ui.js">
   <link rel="modulepreload" href="/static/js/sessions.js">
   <link rel="modulepreload" href="/static/js/markdown.js">
-  <!-- Hide removed features: Compare, Deep Research, Library, Notes -->
+  <!-- Hide removed/unused features from sidebar and settings -->
   <style>
-    /* Sidebar tool list items */
+    /* ── Sidebar: Compare, Deep Research, Library, Notes ── */
     #tool-compare-btn,
     #tool-research-btn,
     #tool-library-btn,
@@ -268,12 +268,17 @@
     #rail-research,
     #rail-archive,
     #rail-notes { display: none !important; }
-    /* Active indicator buttons in the chat input bar */
+    /* Input bar indicators */
     #research-toggle-btn,
     #compare-indicator-btn { display: none !important; }
     /* Overflow menu entries */
     #overflow-research-btn,
     #overflow-compare-btn { display: none !important; }
+    /* ── Settings: Search and Integrations tabs ── */
+    button.settings-nav-item[data-settings-tab="search"],
+    button.settings-nav-item[data-settings-tab="integrations"] { display: none !important; }
+    div[data-settings-panel="search"],
+    div[data-settings-panel="integrations"] { display: none !important; }
   </style>
 </head>
 <body>

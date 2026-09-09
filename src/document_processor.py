@@ -396,9 +396,31 @@ def _resolve_vl_model(configured: str, owner: str | None = None) -> tuple:
     raise ValueError("No vision model available")
 
 
-def analyze_image_with_vl_result(image_path: str, owner: str | None = None) -> dict:
-    """Analyze an image and return both text and the model that produced it."""
+def analyze_image_with_vl_result(image_path: str, owner: str | None = None, use_ocr: bool = False) -> dict:
+    """Analyze an image and return both text and the model that produced it.
+
+    When use_ocr=True (or when the image looks like a document/scanned page),
+    Unlimited-OCR is tried first for higher-quality text extraction.
+    Falls back to qwen3-vl via Ollama native API.
+    """
     logger.info(f"Analyzing image with VL model: {image_path}")
+
+    # ── Try Unlimited-OCR first for document/text extraction ──────────────
+    # Unlimited-OCR (baidu/Unlimited-OCR, MIT) specialises in high-accuracy
+    # multilingual OCR from scanned documents, P&IDs, and printed text.
+    # Only attempt it when CUDA is available (it requires a GPU).
+    if use_ocr:
+        try:
+            from src.unlimited_ocr import ocr_available, ocr_image
+            if ocr_available():
+                logger.info("Using Unlimited-OCR for text extraction: %s", image_path)
+                text = ocr_image(image_path)
+                if text and not text.startswith("["):
+                    return {"text": text, "model": "baidu/Unlimited-OCR"}
+                logger.warning("Unlimited-OCR returned no useful text, falling back to VL model")
+        except Exception as e:
+            logger.warning("Unlimited-OCR attempt failed: %s", e)
+
     try:
         settings = _load_vl_settings()
         if not settings.get("vision_enabled", True):
@@ -484,6 +506,15 @@ def analyze_image_with_vl_result(image_path: str, owner: str | None = None) -> d
 def analyze_image_with_vl(image_path: str, owner: str | None = None) -> str:
     """Analyze an image using the admin-configured Vision-Language model."""
     return analyze_image_with_vl_result(image_path, owner=owner).get("text", "")
+
+
+def ocr_image_text(image_path: str) -> str:
+    """Extract text from an image using Unlimited-OCR (best quality) with VL fallback.
+
+    Use this when the user specifically wants text extraction / OCR from an image
+    (scanned document, screenshot with text, P&ID labels, handwritten notes).
+    """
+    return analyze_image_with_vl_result(image_path, use_ocr=True).get("text", "")
 
 
 def build_user_content(
