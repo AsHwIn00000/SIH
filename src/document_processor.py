@@ -294,7 +294,61 @@ def strip_pdf_content_marker(text: str) -> str:
     return (text or "").removeprefix(_PDF_CONTENT_MARKER).strip()
 
 
-def _load_vl_settings() -> dict:
+def _prepare_image_for_vl(image_path: str) -> tuple[str, str]:
+    """Resize and compress an image before sending to the vision model.
+
+    Large images (> 1024px or > 500KB) are the #1 cause of VL model timeouts.
+    A 1.5MB PNG becomes a 2MB base64 string — qwen3-vl:8b takes 2+ minutes to
+    process it and hits the timeout. Resizing to max 1024px and converting to
+    JPEG reduces the payload by ~95% with no meaningful quality loss for analysis.
+
+    Returns (base64_data, image_format) — format is 'jpeg' for compressed
+    images, original format otherwise.
+    """
+    try:
+        from PIL import Image
+        import io
+
+        img = Image.open(image_path)
+        original_size = os.path.getsize(image_path)
+        needs_resize = img.width > 1024 or img.height > 1024 or original_size > 512 * 1024
+
+        if needs_resize:
+            # Convert RGBA/P/LA → RGB so we can save as JPEG
+            if img.mode in ("RGBA", "LA"):
+                background = Image.new("RGB", img.size, (255, 255, 255))
+                background.paste(img, mask=img.split()[-1])
+                img = background
+            elif img.mode == "P":
+                img = img.convert("RGBA")
+                background = Image.new("RGB", img.size, (255, 255, 255))
+                background.paste(img, mask=img.split()[-1])
+                img = background
+            elif img.mode != "RGB":
+                img = img.convert("RGB")
+
+            img.thumbnail((1024, 1024), Image.LANCZOS)
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=82)
+            compressed = buf.getvalue()
+            b64 = base64.b64encode(compressed).decode("utf-8")
+            logger.info(
+                "VL image compressed: %d KB → %d KB (%.0f%% reduction)",
+                original_size // 1024,
+                len(compressed) // 1024,
+                (1 - len(compressed) / original_size) * 100,
+            )
+            return b64, "jpeg"
+
+    except Exception as e:
+        logger.warning("Image pre-processing failed, sending original: %s", e)
+
+    # Fallback: send original bytes
+    with open(image_path, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode("utf-8")
+    ext = os.path.splitext(image_path)[1].lower()
+    mime_map = {".jpg": "jpeg", ".jpeg": "jpeg", ".png": "png", ".gif": "gif", ".webp": "webp"}
+    return b64, mime_map.get(ext, "jpeg")
     """Load admin settings from disk."""
     try:
         from src.settings import load_settings
@@ -306,20 +360,29 @@ def _load_vl_settings() -> dict:
 def _resolve_vl_model(configured: str, owner: str | None = None) -> tuple:
     """Resolve the vision model to (url, model_id, headers).
 
-    Uses admin-configured model if set, otherwise tries auto-detection
-    of known vision-capable models across configured endpoints.
+    Uses admin-configured model if set, otherwise tries endpoint settings
+    and auto-detection of known vision-capable models across configured endpoints.
     """
     from src.ai_interaction import _resolve_model
+    from src.endpoint_resolver import resolve_endpoint
 
     if configured:
         return _resolve_model(configured, owner=owner)
 
-    # Auto-detect: try known vision-capable models in priority order
+    # 1. Try resolving vision endpoint from settings (falls back to default endpoint/model if unset)
+    try:
+        url, model, headers = resolve_endpoint("vision", owner=owner)
+        if url and model:
+            return url, model, headers
+    except Exception:
+        pass
+
+    # 2. Auto-detect: try known vision-capable models in priority order
     candidates = [
         "gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-4.1-mini",
         "claude-sonnet-4-5-20250929", "claude-opus-4-20250514",
         "gemini-2.0-flash", "gemini-2.5-pro",
-        "llava", "pixtral", "qwen2-vl",
+        "llava", "llava:latest", "pixtral", "qwen2-vl", "moondream", "llama3.2-vision",
     ]
     for candidate in candidates:
         try:
@@ -344,12 +407,10 @@ def analyze_image_with_vl_result(image_path: str, owner: str | None = None) -> d
         except ValueError:
             return {"text": "[No vision model configured — set one in Settings → Vision]", "model": vl_model or ""}
 
-        with open(image_path, "rb") as f:
-            img_data = base64.b64encode(f.read()).decode("utf-8")
-
-        ext = os.path.splitext(image_path)[1].lower()
-        mime_map = {".jpg": "jpeg", ".jpeg": "jpeg", ".png": "png", ".gif": "gif", ".webp": "webp"}
-        img_format = mime_map.get(ext, "jpeg")
+        # Pre-process: resize to max 1024px and compress to JPEG.
+        # Reduces a 1.5MB PNG from ~2MB base64 to ~100KB (95% smaller).
+        # This is the main fix for qwen3-vl:8b timeout on large images.
+        img_data, img_format = _prepare_image_for_vl(image_path)
 
         vl_messages = [
             {
@@ -372,7 +433,7 @@ def analyze_image_with_vl_result(image_path: str, owner: str | None = None) -> d
         last_err = None
         for i, (_url, _model, _headers) in enumerate([c for c in _vl_candidates if c and c[0] and c[1]]):
             try:
-                description = llm_call(_url, _model, vl_messages, headers=_headers, timeout=120)
+                description = llm_call(_url, _model, vl_messages, headers=_headers, timeout=180)
                 logger.info("VL analysis complete with model %s", _model)
                 return {"text": description, "model": _model}
             except Exception as e:
@@ -438,16 +499,16 @@ def build_user_content(
 
         if upload_handler.is_image_file(display_name, mime):
             try:
-                with open(path, "rb") as image_file:
-                    encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
-                # Extensionless uploads (e.g. a pasted screenshot) have no ext,
-                # so fall back to the resolved MIME subtype rather than emitting
-                # an invalid "data:image/;base64," with an empty subtype.
-                image_format = ext[1:] or (mime.split("/", 1)[1] if mime.startswith("image/") else "png")
+                # Pre-process image: resize to max 1024px and compress.
+                # Sending a raw 1.5MB PNG as base64 makes multimodal models
+                # like qwen3-vl:8b time out. Compression reduces it by ~95%.
+                encoded_string, image_format = _prepare_image_for_vl(path)
                 content.append({
                     "type": "image_url",
                     "image_url": {"url": f"data:image/{image_format};base64,{encoded_string}"},
                 })
+                logger.info("Image %s added to content as %s (%d chars base64)",
+                            os.path.basename(display_name), image_format, len(encoded_string))
             except Exception as e:
                 logger.error(f"Failed to encode image {fid}: {e}")
                 if content and content[0]["type"] == "text":
