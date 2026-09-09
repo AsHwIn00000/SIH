@@ -1333,9 +1333,6 @@ def setup_chat_routes(
             compare_mode=compare_mode,
             webhook_manager=webhook_manager,
             use_enhanced_message=True,
-            # Skills index only ships when the model can actually call
-            # manage_skills (agent mode). In plain chat or incognito the
-            # index would be useless / unwanted noise.
             agent_mode=(chat_mode == "agent"),
             allow_tool_preprocessing=allow_tool_preprocessing,
             defer_context_shaping=foreground_policy.enabled,
@@ -1349,9 +1346,8 @@ def setup_chat_routes(
             persist_user_message=not tool_approval_continuation,
         )
 
-        _research_flags = {"do": do_research}  # Mutable container for generator scope
-
         # Query active document — prefer explicit ID from frontend, fall back to session lookup
+        # NOTE: ctx is available here because build_chat_context already awaited above.
         active_doc = None
         _doc_db = SessionLocal()
         try:
@@ -1588,6 +1584,53 @@ def setup_chat_routes(
             # _effective_mode is read-only here; closure captures it from
             # the outer scope. (Was `nonlocal` but never reassigned.)
             research_sources = None
+
+            # ── Auto Model Router ──────────────────────────────────────────
+            # Select the best Ollama model for this turn based on intent.
+            # Only overrides for this turn — user default is never changed.
+            try:
+                from src.intent_router import route_model
+                import httpx as _hx
+                _available_models: list[str] = []
+                try:
+                    _tr = _hx.get("http://127.0.0.1:11434/api/tags", timeout=3)
+                    if _tr.status_code == 200:
+                        _available_models = [m["name"] for m in _tr.json().get("models", [])]
+                except Exception:
+                    pass
+
+                _att_meta = getattr(ctx.preprocessed, "attachment_meta", []) or []
+                _route = route_model(message, attachments=_att_meta)
+
+                if _route.get("auto_selected") and _available_models:
+                    _category = _route["category"]
+                    _candidates = _route.get("candidates", [_route["selected_model"]])
+                    _resolved_model = None
+                    for _cand in _candidates:
+                        _base = _cand.split(":")[0].lower()
+                        if _cand in _available_models:
+                            _resolved_model = _cand
+                            break
+                        for _am in _available_models:
+                            if _am.lower().startswith(_base):
+                                _resolved_model = _am
+                                break
+                        if _resolved_model:
+                            break
+
+                    if _resolved_model and _resolved_model != sess.model:
+                        logger.info(
+                            "[intent-router] category=%s → %s (was %s)",
+                            _category, _resolved_model, sess.model,
+                        )
+                        yield f"data: {json.dumps({'type': 'model_switch', 'model': _resolved_model, 'category': _category, 'auto': True})}\n\n"
+                        sess.model = _resolved_model
+                    else:
+                        logger.debug("[intent-router] category=%s → keeping %s", _category, sess.model)
+            except Exception as _re:
+                logger.warning("[intent-router] failed, keeping session model: %s", _re)
+            # ─────────────────────────────────────────────────────────────
+
             web_sources = ctx.web_sources
 
             # Register active stream for partial-save safety net

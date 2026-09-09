@@ -631,7 +631,7 @@ import { loadPanel } from './panels.js';
   let _lastReaderActivity = 0; // Timestamp of last reader.read() success — used to detect frozen streams
   let _webLockRelease = null;  // Function to release the Web Lock held during streaming
   let _staleStreamProbeInFlight = false;
-  const STALE_LOCAL_STREAM_MS = 15000;
+  const STALE_LOCAL_STREAM_MS = 300000; // 5 min — VL image analysis can take 2min+
 
   /** Check if an SSE reader is still actively connected for a session. */
   function hasActiveStream(sessionId) {
@@ -5427,7 +5427,7 @@ import { loadPanel } from './panels.js';
 
       // Stream claims to be running — check if reader is actually alive
       const staleSince = Date.now() - (active.lastActivity || _lastReaderActivity);
-      if (staleSince < 20000) return; // Active recently, probably fine
+      if (staleSince < 300000) return; // Active recently — allow up to 5min for VL/doc preprocessing
 
       // Reader hasn't produced data in 5+ seconds after tab resume.
       // Give it a short grace period then recover.
@@ -5438,7 +5438,7 @@ import { loadPanel } from './panels.js';
         const stillActive = _getForegroundStreamState();
         if (!stillActive) return;
         const stillStale = Date.now() - (stillActive.lastActivity || _lastReaderActivity);
-        if (stillStale < 5000) return; // Came back to life
+        if (stillStale < 120000) return; // Still waiting — VL/doc processing can take up to 2min
 
         console.warn('[tab-recovery] Stream confirmed dead. Aborting and reloading session.');
 
