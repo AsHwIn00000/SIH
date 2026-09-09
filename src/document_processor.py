@@ -349,6 +349,9 @@ def _prepare_image_for_vl(image_path: str) -> tuple[str, str]:
     ext = os.path.splitext(image_path)[1].lower()
     mime_map = {".jpg": "jpeg", ".jpeg": "jpeg", ".png": "png", ".gif": "gif", ".webp": "webp"}
     return b64, mime_map.get(ext, "jpeg")
+
+
+def _load_vl_settings() -> dict:
     """Load admin settings from disk."""
     try:
         from src.settings import load_settings
@@ -409,21 +412,10 @@ def analyze_image_with_vl_result(image_path: str, owner: str | None = None) -> d
 
         # Pre-process: resize to max 1024px and compress to JPEG.
         # Reduces a 1.5MB PNG from ~2MB base64 to ~100KB (95% smaller).
-        # This is the main fix for qwen3-vl:8b timeout on large images.
         img_data, img_format = _prepare_image_for_vl(image_path)
+        logger.info("VL image prepared: %d chars base64 format=%s", len(img_data), img_format)
 
-        vl_messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": "Describe this image in detail"},
-                    {"type": "image_url", "image_url": {"url": f"data:image/{img_format};base64,{img_data}"}},
-                ],
-            }
-        ]
-        # Vision-specific fallback chain (Settings → Vision → Fallbacks). A
-        # downed vision endpoint can fall through to the next configured model
-        # — same shape as task/chat but its own list (`vision_model_fallbacks`).
+        # Vision-specific fallback chain
         try:
             from src.endpoint_resolver import resolve_vision_fallback_candidates
             _vl_candidates = [(url, model_id, headers)] + resolve_vision_fallback_candidates(owner=owner)
@@ -431,16 +423,57 @@ def analyze_image_with_vl_result(image_path: str, owner: str | None = None) -> d
             _vl_candidates = [(url, model_id, headers)]
 
         last_err = None
-        for i, (_url, _model, _headers) in enumerate([c for c in _vl_candidates if c and c[0] and c[1]]):
+        for i, (_url, _model, _hdrs) in enumerate([c for c in _vl_candidates if c and c[0] and c[1]]):
             try:
-                description = llm_call(_url, _model, vl_messages, headers=_headers, timeout=180)
-                logger.info("VL analysis complete with model %s", _model)
-                return {"text": description, "model": _model}
+                from src.llm_core import _detect_provider
+                _provider = _detect_provider(_url)
+
+                if _provider == "ollama" or "11434" in _url:
+                    # Ollama native /api/chat with images array — correct format for multimodal
+                    import httpx as _httpx
+                    _base = _url.split("/v1")[0].split("/api")[0].rstrip("/")
+                    _ollama_url = f"{_base}/api/chat"
+                    _payload = {
+                        "model": _model,
+                        "messages": [{
+                            "role": "user",
+                            "content": "Describe this image in detail",
+                            "images": [img_data],
+                        }],
+                        "stream": False,
+                        "options": {
+                            "repeat_penalty": 1.15,
+                            "repeat_last_n": 128,
+                            "top_k": 40,
+                            "top_p": 0.9,
+                            "num_ctx": 8192,
+                        }
+                    }
+                    _r = _httpx.post(_ollama_url, json=_payload, timeout=600)
+                    if _r.status_code != 200:
+                        raise RuntimeError(f"Ollama returned {_r.status_code}: {_r.text[:200]}")
+                    description = _r.json().get("message", {}).get("content", "")
+                else:
+                    # OpenAI-compatible multimodal format
+                    vl_messages = [{
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Describe this image in detail"},
+                            {"type": "image_url", "image_url": {"url": f"data:image/{img_format};base64,{img_data}"}},
+                        ],
+                    }]
+                    description = llm_call(_url, _model, vl_messages, headers=_hdrs, timeout=180)
+
+                if description:
+                    logger.info("VL analysis complete with model %s", _model)
+                    return {"text": description, "model": _model}
+
             except Exception as e:
                 last_err = e
                 tag = "primary" if i == 0 else "candidate"
-                logger.warning(f"[vision fallback] {tag} {_model} failed ({type(e).__name__}); trying next")
+                logger.warning(f"[vision fallback] {tag} {_model} failed ({type(e).__name__}): {e}; trying next")
                 continue
+
         raise last_err if last_err else RuntimeError("No vision model endpoint configured")
 
     except Exception as e:
