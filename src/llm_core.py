@@ -760,6 +760,16 @@ def _build_ollama_payload(
         options["num_predict"] = max_tokens
     if num_ctx is not None and num_ctx > 0 and num_ctx != DEFAULT_CONTEXT:
         options["num_ctx"] = num_ctx
+    # Prevent repetition loops — critical for long-context prompts (documents,
+    # agent tool lists) where small local models like qwen3:4b can get stuck
+    # repeating phrases (manifests as HTTP 502 "started repeating tokens").
+    # repeat_penalty > 1.0 penalises already-generated tokens; repeat_last_n
+    # is the sliding window of tokens to check (64 = Ollama default, 128 gives
+    # better coverage for long documents). These are Ollama-specific options.
+    options.setdefault("repeat_penalty", 1.15)
+    options.setdefault("repeat_last_n", 128)
+    options.setdefault("top_k", 40)
+    options.setdefault("top_p", 0.9)
     if options:
         payload["options"] = options
     if tools:
