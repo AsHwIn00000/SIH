@@ -126,14 +126,14 @@ logger = logging.getLogger(__name__)
 # and passed to FastAPI so we can use the modern context-manager lifecycle
 # instead of the deprecated @app.on_event("startup"/"shutdown") decorators.
 app = FastAPI(
-    title="AI Chat Application",
-    description="Comprehensive AI chat with memory, research, and multi-modal capabilities",
-    version="1.0.0",
+    title="HEXA Sovereign Industrial AI Workbench",
+    description="Air-Gapped Sovereign AI Workbench for Industrial & Defence Knowledge Work",
+    version="2.0.0",
 )
 
 # ========= CORS =========
 CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost,http://127.0.0.1").split(",")
+allowed_origins = list(set(os.getenv("ALLOWED_ORIGINS", "http://localhost,http://127.0.0.1").split(",") + ["tauri://localhost"]))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
@@ -798,6 +798,10 @@ app.include_router(calendar_router)
 # Shell (user-facing command execution)
 from routes.shell_routes import setup_shell_routes
 app.include_router(setup_shell_routes())
+
+# Security & Zero-Egress Status Monitor API
+from routes.security_routes import router as security_router
+app.include_router(security_router)
 
 # Cookbook (model download/serve/cache, cookbook state sync)
 from routes.cookbook_routes import setup_cookbook_routes

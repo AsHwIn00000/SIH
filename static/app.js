@@ -1297,7 +1297,15 @@ function initializeEventListeners() {
   const userBarAdmin = el('user-bar-admin');
 
   if (userBarSettings) {
-    userBarSettings.addEventListener('click', () => settingsModule.open());
+    userBarSettings.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (settingsModule && typeof settingsModule.open === 'function') {
+        settingsModule.open();
+      } else {
+        const sm = document.getElementById('settings-modal');
+        if (sm) sm.classList.remove('hidden');
+      }
+    });
   }
   if (userBarProfile) {
     // Clicking the user (avatar + name) jumps straight to the Account tab
@@ -2411,7 +2419,7 @@ function initializeEventListeners() {
 	        textarea.setAttribute('placeholder', 'Swipe to toggle plan');
 	        return;
 	      }
-	      textarea.setAttribute('placeholder', width < PLACEHOLDER_COMPACT_WIDTH ? 'Message...' : 'Message Odysseus...');
+	      textarea.setAttribute('placeholder', width < PLACEHOLDER_COMPACT_WIDTH ? 'Message...' : 'Message HEXA...');
 	    }
 
 	    if (_isMobile && textarea && !textarea._odysseusPlanPlaceholderHint) {

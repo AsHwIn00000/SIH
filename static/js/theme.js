@@ -9,10 +9,10 @@ import { makeWindowDraggable } from './windowDrag.js';
 import { snapModalToZone } from './tileManager.js';
 
 export const THEMES = {
-  dark:       { bg:'#282c34', fg:'#9cdef2', panel:'#111111', border:'#355a66', red:'#e06c75' },
-  light:      { bg:'#f0ebe3', fg:'#5a5248', panel:'#faf6f0', border:'#d4cdc2', red:'#c47d5a' },
-  midnight:   { bg:'#0d1117', fg:'#c9d1d9', panel:'#161b22', border:'#30363d', red:'#f85149' },
-  paper:      { bg:'#faf8f5', fg:'#3b3836', panel:'#ffffff', border:'#d5d0c8', red:'#c5ac4a' },
+  light:      { bg:'#ffffff', fg:'#0f172a', panel:'#ffffff', border:'#e2e8f0', red:'#10b981', sidebarBg: '#0d9488' },
+  dark:       { bg:'#0f172a', fg:'#e2e8f0', panel:'#1e293b', border:'#334155', red:'#10b981' },
+  midnight:   { bg:'#0d1117', fg:'#c9d1d9', panel:'#161b22', border:'#30363d', red:'#10b981' },
+  paper:      { bg:'#faf8f5', fg:'#3b3836', panel:'#ffffff', border:'#d5d0c8', red:'#059669' },
   // Spicy / fun themes
   cyberpunk:  { bg:'#0a0a0f', fg:'#0ff0fc', panel:'#12101a', border:'#9b30ff', red:'#e040fb' },
   retrowave:  { bg:'#1a1a2e', fg:'#e94560', panel:'#16213e', border:'#533483', red:'#e94560' },
@@ -31,9 +31,9 @@ export const THEMES = {
   cute:       { bg:'#fff0f5', fg:'#d4608a', panel:'#fff8fa', border:'#f0c0d0', red:'#ff6b9d' },
 };
 
-const DEFAULT_THEME = 'dark';
-const LS_KEY = 'odysseus-theme';
-const CUSTOM_THEMES_KEY = 'odysseus-custom-themes';
+const DEFAULT_THEME = 'light';
+const LS_KEY = 'hexa-theme';
+const CUSTOM_THEMES_KEY = 'hexa-custom-themes';
 
 const FONT_MAP = {
   mono: "'Fira Code', monospace",
@@ -203,7 +203,7 @@ function computeAdvancedDefaults(colors) {
     userBubbleBg: colors.bg,
     aiBubbleBg: colors.panel,
     bubbleBorder: colors.border,
-    sidebarBg: colors.panel,
+    sidebarBg: colors.sidebarBg || '#0d9488',
     brandColor: red,
     brandMixTo: colors.fg,
     hamburgerColor: colors.fg,
@@ -330,30 +330,22 @@ const _ROUTE_FAVICON_SHAPES = {
 };
 
 function _updateFavicon(fg) {
-  const path = (window.location.pathname || '').toLowerCase();
-  const routeShape = _ROUTE_FAVICON_SHAPES[path];
-  let svg;
-  if (routeShape) {
-    svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>${routeShape.split('__C__').join(fg)}</svg>`;
-  } else {
-    svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M16 4L16 22L6 22Z' fill='${fg}'/><path d='M16 8L16 22L24 22Z' fill='${fg}' opacity='0.6'/><path d='M4 24Q10 20 16 24Q22 28 28 24' stroke='${fg}' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>`;
-  }
-  const href = 'data:image/svg+xml,' + encodeURIComponent(svg);
   let link = document.querySelector("link[rel='icon']");
   if (!link) {
     link = document.createElement('link');
     link.rel = 'icon';
-    link.type = 'image/svg+xml';
     document.head.appendChild(link);
   }
-  link.href = href;
+  link.type = 'image/png';
+  link.href = '/static/assets/hexa-logo.png';
+
   let apple = document.querySelector("link[rel='apple-touch-icon']");
   if (!apple) {
     apple = document.createElement('link');
     apple.rel = 'apple-touch-icon';
     document.head.appendChild(apple);
   }
-  apple.href = href;
+  apple.href = '/static/assets/hexa-logo.png';
 }
 
 // Cache of discovered custom fonts: { "Family Name": [ {file, url, format} ] }

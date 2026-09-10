@@ -3,8 +3,8 @@
 
 // ── Key constants ──
 export const KEYS = {
-  THEME: 'odysseus-theme',
-  TOGGLES: 'odysseus-toggles',
+  THEME: 'hexa-theme',
+  TOGGLES: 'hexa-toggles',
   SIDEBAR_COLLAPSED: 'sidebar-collapsed',
   SIDEBAR_WIDTH: 'sidebar-width',
   SIDEBAR_SIDE: 'sidebar-side',
@@ -13,19 +13,19 @@ export const KEYS = {
   COMPARE_CHAT: 'compare-continue-chat',
   COMPARE_BLIND: 'compare-blind',
   COMPARE_RANDOM: 'compare-randomize',
-  MODELS_EXPANDED: 'odysseus-model-expanded',
-  MODEL_ENDPOINTS: 'odysseus-model-endpoints',
-  MODEL_SELECTED: 'odysseus-selected-model',
-  SORT_ORDER: 'odysseus-sessions-sort',
-  CHAT_SEARCH_SCOPE: 'odysseus-search-scope',
-  INCOGNITO: 'odysseus-incognito',
-  RAG_ACTIVE: 'odysseus-rag-active',
-  MCP_ACTIVE: 'odysseus-mcp-active',
+  MODELS_EXPANDED: 'hexa-model-expanded',
+  MODEL_ENDPOINTS: 'hexa-model-endpoints',
+  MODEL_SELECTED: 'hexa-selected-model',
+  SORT_ORDER: 'hexa-sessions-sort',
+  CHAT_SEARCH_SCOPE: 'hexa-search-scope',
+  INCOGNITO: 'hexa-incognito',
+  RAG_ACTIVE: 'hexa-rag-active',
+  MCP_ACTIVE: 'hexa-mcp-active',
   SECTION_ORDER: 'sidebar-section-order',
   ADMIN_LAST_TAB: 'admin-last-tab',
-  DENSITY: 'odysseus-density',
-  UI_SCALE: 'odysseus-ui-scale',
-  WORKSPACE: 'odysseus-workspace'
+  DENSITY: 'hexa-density',
+  UI_SCALE: 'hexa-ui-scale',
+  WORKSPACE: 'hexa-workspace'
 };
 
 /**

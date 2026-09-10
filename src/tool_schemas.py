@@ -514,6 +514,20 @@ FUNCTION_TOOL_SCHEMAS = [
     {
         "type": "function",
         "function": {
+            "name": "generate_image",
+            "description": "Generate an image locally or via image model from a prompt (e.g. 'aeroplane', 'industrial schematic', 'car'). Always call this tool whenever the user asks to create, draw, generate, or render an image.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "prompt": {"type": "string", "description": "Description of the image to generate"}
+                },
+                "required": ["prompt"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "ask_user",
             "description": "Ask the user a multiple-choice question to get a decision or clarification when the task is genuinely ambiguous and the answer changes what you do next (e.g. pick between approaches, confirm an assumption, choose a target). The user sees clickable option buttons; calling this ENDS your turn and their selection arrives as your next message. Prefer sensible defaults over asking — only ask when you truly cannot proceed well without the user's input. Do NOT use it to confirm irreversible/destructive actions that have a dedicated confirmation flow.",
             "parameters": {
@@ -1417,6 +1431,8 @@ def function_call_to_tool_block(name: str, arguments: str) -> Optional[ToolBlock
         content = args.get("command", "")
     elif tool_type == "python":
         content = args.get("code", "")
+    elif tool_type == "generate_image":
+        content = args.get("prompt", "")
     elif tool_type == "web_search":
         queries = args.get("queries")
         if isinstance(queries, list) and queries:

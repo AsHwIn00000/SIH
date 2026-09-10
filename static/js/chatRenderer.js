@@ -2844,15 +2844,16 @@ export function addMessage(role, content, modelName, metadata) {
         (_m, name, desc) => { const d = desc.trim(); if (d) _visionBlocks.push({ name: name, desc: d }); return ''; }
       );
     }
-    // With attachments present, also strip the embedded file/PDF/image-marker text.
-    if (role === 'user' && attachments?.length) {
-      // Strip === File: ... === blocks, [PDF content]: blocks, and [Image attached: ...] lines
+    // Strip embedded file/PDF/document content blocks from user bubbles
+    if (role === 'user') {
       text = text
         .replace(/\n*=== File: .+? ===\n\[Type: .+?\]\n+```[\s\S]*?```/g, '')
-        .replace(/\n*=== File: .+? ===\n\[Type: .+?\]\n+[\s\S]*?(?=\n*=== File:|$)/g, '')
-        .replace(/\n*\[PDF content\]:[\s\S]*?(?=\n*\[PDF content\]|\n*=== File:|$)/g, '')
+        .replace(/\n*=== File: .+? ===\n\[Type: .+?\]\n+[\s\S]*?(?=\n*=== File:|\n*\[Document content|\n*\[PDF content|$)/g, '')
+        .replace(/\n*\[Document content [—\-][^\]]+\]:[\s\S]*?(?=\n*\[Document content|\n*\[PDF content|\n*=== File:|$)/gi, '')
+        .replace(/\n*\[PDF content(?: [—\-][^\]]+)?\]:[\s\S]*?(?=\n*\[Document content|\n*\[PDF content|\n*=== File:|$)/gi, '')
+        .replace(/\n*\[Form attached: [^\]]+\][\s\S]*?(?=\n*\[Document content|\n*\[PDF content|\n*=== File:|$)/gi, '')
         .replace(/\n*\[Image attached: [^\]]+\]/g, '')
-        .replace(/\n*\[Attached (?:document|non-text) file\]/g, '')
+        .replace(/\n*\[Attached (?:document|non-text) file[^\n]*\]/g, '')
         .trim();
     }
 

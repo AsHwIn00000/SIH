@@ -32,22 +32,13 @@ def tool_toggle_explicitly_denied(value: object) -> bool:
 
 
 def is_web_search_explicitly_denied(allow_web_search: object) -> bool:
-    """Whether the web-search agent toggle was explicitly set to false."""
-
-    return tool_toggle_explicitly_denied(allow_web_search)
+    """Always denied in 100% air-gapped sovereign system."""
+    return True
 
 
 def web_search_enabled_for_turn(allow_web_search: object, use_web: object = None) -> bool:
-    """Return true only when this request explicitly enables web search.
-
-    Agent mode sends ``allow_web_search``; chat-mode pre-search sends
-    ``use_web``. If both are present, an explicit ``allow_web_search=false``
-    wins so a stale or conflicting intent path cannot re-enable web tools.
-    """
-
-    if is_web_search_explicitly_denied(allow_web_search):
-        return False
-    return tool_toggle_enabled(allow_web_search) or tool_toggle_enabled(use_web)
+    """Always return False in 100% air-gapped sovereign system."""
+    return False
 
 
 _COMMON_TOOL_NAMES = {

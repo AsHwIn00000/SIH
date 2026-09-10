@@ -1018,7 +1018,19 @@ async def do_generate_image(content: str, session_id: Optional[str] = None, owne
             except Exception:
                 pass
         if not model_spec:
-            return {"error": "No image model found. Configure one in Admin → Image Generation."}
+            try:
+                from src.deliverable_writer import generate_local_image
+                img_path = generate_local_image(prompt)
+                filename = os.path.basename(img_path)
+                image_url = f"/api/generated-image/{filename}"
+                return {
+                    "results": f"Generated local image for: {prompt[:100]}",
+                    "image_url": image_url,
+                    "image_prompt": prompt,
+                    "image_model": "HEXA Local Engine",
+                }
+            except Exception as _e:
+                return {"error": f"Local image generation failed: {_e}"}
 
     async def _resolve_image_model(model_name: str):
         def _call():

@@ -110,10 +110,16 @@ function _displayHistoryContent(content) {
 }
 
 function _stripUserVisionBlocks(text) {
-  return String(text || '').replace(
-    /\n*\[Image: ([^\]]+)\]\n[\s\S]*?(?=\n*\[Image: |\n*\[Image attached: |\n*=== File: |\n*\[PDF content\]:|$)/g,
-    ''
-  ).trim();
+  return String(text || '')
+    .replace(/\n*\[Image: ([^\]]+)\]\n[\s\S]*?(?=\n*\[Image: |\n*\[Image attached: |\n*=== File: |\n*\[PDF content\]:|\n*\[Document content|$)/g, '')
+    .replace(/\n*=== File: .+? ===\n\[Type: .+?\]\n+```[\s\S]*?```/g, '')
+    .replace(/\n*=== File: .+? ===\n\[Type: .+?\]\n+[\s\S]*?(?=\n*=== File:|\n*\[Document content|\n*\[PDF content|$)/g, '')
+    .replace(/\n*\[Document content [—\-][^\]]+\]:[\s\S]*?(?=\n*\[Document content|\n*\[PDF content|\n*=== File:|$)/gi, '')
+    .replace(/\n*\[PDF content(?: [—\-][^\]]+)?\]:[\s\S]*?(?=\n*\[Document content|\n*\[PDF content|\n*=== File:|$)/gi, '')
+    .replace(/\n*\[Form attached: [^\]]+\][\s\S]*?(?=\n*\[Document content|\n*\[PDF content|\n*=== File:|$)/gi, '')
+    .replace(/\n*\[Image attached: [^\]]+\]/g, '')
+    .replace(/\n*\[Attached (?:document|non-text) file[^\n]*\]/g, '')
+    .trim();
 }
 
 function _historyPageLimit() {
@@ -286,7 +292,7 @@ function _deselectCurrentSession(sid) {
   if (currentSessionId !== sid) return;
   currentSessionId = null;
   uiModule.el('chat-history').innerHTML = '';
-  uiModule.el('current-meta').textContent = 'Odysseus Chat';
+  uiModule.el('current-meta').textContent = 'HEXA Chat';
   Storage.remove('lastSessionId');
   history.replaceState(null, '', window.location.pathname);
   if (window.chatModule && window.chatModule.showWelcomeScreen) {
@@ -1937,7 +1943,7 @@ export async function selectSession(id, { keepSidebar = false, showLoading = tru
 
     const currentMetaEl = uiModule.el('current-meta');
     if (currentMetaEl) {
-      currentMetaEl.textContent = meta ? meta.name : 'Odysseus Chat';
+      currentMetaEl.textContent = meta ? meta.name : 'HEXA Chat';
     }
     // Update model picker visibility
     updateModelPicker();

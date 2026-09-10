@@ -63,6 +63,7 @@ TOOL_HANDLERS = {
     "list_sessions": ListSessionsTool().execute,
     "send_to_session": SendToSessionTool().execute,
     "manage_session": ManageSessionTool().execute,
+    "generate_image": lambda content, session_id=None, owner=None: __import__("src.ai_interaction", fromlist=["do_generate_image"]).do_generate_image(content, session_id, owner),
 }
 # Config/integration admin tools (manage_endpoints/mcp/webhooks/tokens/settings).
 TOOL_HANDLERS.update(ADMIN_TOOL_HANDLERS)

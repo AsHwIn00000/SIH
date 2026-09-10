@@ -16,78 +16,99 @@
  */
 
 :root {
-  /* Core palette */
-  --bg: #282c34;
-  --fg: #9cdef2;
-  --panel: #111;
-  --border: #355a66;
-  --red: #e06c75;
-  /* Were `var(--green)` / `var(--warn)` — self-referential, so they
-     resolved to invalid and every site fell back to its own literal
-     (or, for sites with no fallback, painted as transparent/inherit).
-     Anchor them to real hex so the token layer actually works. */
-  --green: #50fa7b;
-  --warn: #f0ad4e;
+  /* Core HEXA Pure White & Emerald/Teal Palette */
+  --bg: #ffffff;
+  --fg: #0f172a;
+  --panel: #ffffff;
+  --sidebar-bg: #0d9488; /* Rich Teal Sidebar */
+  --border: #e2e8f0;
+  --red: #10b981; /* HEXA Brand Green */
+  --accent: #10b981;
+  --accent-hover: #059669;
+  --brand-color: #ffffff;
+  --green: #10b981;
+  --warn: #f59e0b;
+
+  /* Gradient Tokens */
+  --grad-teal: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+  --grad-hover: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  --grad-panel-hover: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 148, 136, 0.03) 100%);
 
   /* Syntax highlighting */
-  --hl-bg: #1e2228;
-  --hl-fg: #9cdef2;
-  --hl-keyword: #c678dd;
-  --hl-string: #e5c07b;
-  --hl-comment: #828997;
-  --hl-function: #61afef;
-  --hl-number: #d19a66;
-  --hl-builtin: #56b6c2;
-  --hl-variable: #abb2bf;
-  --hl-params: #a8c0d4;
+  --hl-bg: #f8fafc;
+  --hl-fg: #0f172a;
+  --hl-keyword: #10b981;
+  --hl-string: #d97706;
+  --hl-comment: #64748b;
+  --hl-function: #0284c7;
+  --hl-number: #ea580c;
+  --hl-builtin: #0891b2;
+  --hl-variable: #334155;
+  --hl-params: #475569;
 
   /* Semantic colors */
-  --color-error: #ff4444;
-  --color-error-light: #ff6666;
-  --color-success: #4caf50;
-  --color-warning: #f0ad4e;
-  --color-danger: #c0392b;
-  --color-recording: #ff3b30;
-  --color-recording-hover: #d63031;
-  --color-muted: #888;
-  --color-muted-alt: #6b7280;
-  --color-accent: #00aaff;
-  --color-agent-active: #00ff00;
-  --color-brand-blue: #3b82f6;
-  --color-blind-orange: #ff9800;
+  --color-error: #ef4444;
+  --color-error-light: #fca5a5;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+  --color-recording: #ef4444;
+  --color-recording-hover: #dc2626;
+  --color-muted: #64748b;
+  --color-muted-alt: #94a3b8;
+  --color-accent: #10b981;
+  --color-agent-active: #10b981;
+  --color-brand-blue: #0284c7;
+  --color-blind-orange: #f97316;
   --color-save-green: var(--color-success);
-  --color-link-hover: #66c7ff;
-  --color-subheader: #6b8a94;
-  --select-bg: var(--bg);
-  --select-fg: var(--fg);
-  --select-option-bg: color-mix(in srgb, var(--panel) 74%, var(--bg));
-  --select-option-fg: var(--fg);
-  --select-option-active-bg: color-mix(in srgb, var(--accent, var(--red)) 24%, var(--panel));
-  /* Warm accent — used by the Goals/Today UI in Notes. Lives as a token so
-     themes can override without touching the goal CSS. */
-  --accent-warm: #d19a66;
-}
-
-:root.light {
-  --bg: #f5f5f5;
-  --fg: #2b2b2b;
-  --panel: #fff;
-  --border: #bbb;
-  --hl-bg: #f9f9f9;
-  --hl-fg: #2b2b2b;
-  --hl-keyword: #7928a1;
-  --hl-string: #986801;
-  --hl-comment: #6a737d;
-  --hl-function: #005cc5;
-  --hl-number: #986801;
-  --hl-builtin: #0070a0;
-  --hl-variable: #383a42;
-  --hl-params: #4a4f5c;
-  --select-bg: #eaeaea;
+  --color-link-hover: #059669;
+  --color-subheader: #475569;
+  --select-bg: #ffffff;
   --select-fg: var(--fg);
   --select-option-bg: var(--panel);
   --select-option-fg: var(--fg);
-  --select-option-active-bg: color-mix(in srgb, var(--red) 16%, var(--panel));
+  --select-option-active-bg: color-mix(in srgb, var(--accent) 16%, var(--panel));
+  --accent-warm: #f59e0b;
+}
+
+:root.light {
+  --bg: #ffffff;
+  --fg: #0f172a;
+  --panel: #ffffff;
+  --sidebar-bg: #0d9488;
+  --border: #e2e8f0;
+  --red: #10b981;
+  --accent: #10b981;
+  --accent-hover: #059669;
+  --brand-color: #ffffff;
+  --green: #10b981;
+  --warn: #d97706;
+
+  --grad-teal: linear-gradient(135deg, #10b981 0%, #0d9488 100%);
+  --grad-hover: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  --grad-panel-hover: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 148, 136, 0.03) 100%);
+
+  --hl-bg: #f8fafc;
+  --hl-fg: #0f172a;
+  --hl-keyword: #10b981;
+  --hl-string: #d97706;
+  --hl-comment: #64748b;
+  --hl-function: #0284c7;
+  --hl-number: #ea580c;
+  --hl-builtin: #0891b2;
+  --hl-variable: #334155;
+  --hl-params: #475569;
+
+  --color-muted: #64748b;
+  --color-muted-alt: #94a3b8;
+  --color-accent: #10b981;
+  --color-link-hover: #059669;
+  --color-subheader: #475569;
+  --select-bg: #ffffff;
+  --select-fg: var(--fg);
+  --select-option-bg: var(--panel);
+  --select-option-fg: var(--fg);
+  --select-option-active-bg: color-mix(in srgb, var(--accent) 16%, var(--panel));
 }
 
 /* ── Reset & Base ── */
@@ -150,6 +171,38 @@ html {
 
 /* Utility */
 .red-text { color: var(--red); }
+
+/* ── HEXA Interactive & Gradient Hover Effects ── */
+.btn-primary, .confirm-btn-primary, #sidebar-new-chat-btn {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn-primary:hover, .confirm-btn-primary:hover, #sidebar-new-chat-btn:hover {
+  background: var(--grad-teal) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(20, 184, 166, 0.35);
+  transform: translateY(-1px);
+}
+.list-item, .icon-rail-btn, .user-bar-left {
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+.list-item:hover, .user-bar-left:hover {
+  background: var(--grad-panel-hover) !important;
+  border-radius: 8px;
+}
+.icon-rail-btn:hover {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+  transform: scale(1.05);
+}
+.sidebar-brand-title {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-clip: unset !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.05em;
+}
 
 /* ── Density Overrides ── */
 
@@ -451,9 +504,10 @@ body.bg-pattern-sparkles {
       }
     }
     .sidebar {
-      width: 240px;
-      background: var(--sidebar-bg, var(--panel));
-      border-right: 1px solid var(--border);
+      width: 250px;
+      background: var(--sidebar-bg, #0d9488) !important;
+      color: #ffffff !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.18);
       transition: width 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
       display: flex;
       flex-direction: column;
@@ -462,10 +516,73 @@ body.bg-pattern-sparkles {
       min-height: 0;
       margin: 0;
       padding: 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid color-mix(in srgb, var(--fg) 11%, transparent);
+      box-shadow: 2px 0 16px rgba(13, 148, 136, 0.2);
       position: relative;
+    }
+    .sidebar-header {
+      background: transparent !important;
+    }
+    .sidebar-brand-title {
+      font-size: 1.6rem !important;
+      font-weight: 900 !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      background: none !important;
+      letter-spacing: 0.06em !important;
+      opacity: 1 !important;
+    }
+    .sidebar .list-item,
+    .sidebar .list-item span,
+    .sidebar .grow,
+    .sidebar .section-title,
+    .sidebar .section-title-label,
+    .sidebar .section-header-btn,
+    .sidebar .list-item-plus-label,
+    .sidebar-user-bar span,
+    .sidebar-user-bar div {
+      color: #ffffff !important;
+      font-size: 1rem !important;
+      font-weight: 500 !important;
+      opacity: 1 !important;
+    }
+    .sidebar .section-title,
+    .sidebar .section-title-label {
+      font-weight: 600 !important;
+      font-size: 1.05rem !important;
+      color: #ffffff !important;
+    }
+    .sidebar svg,
+    .sidebar path,
+    .sidebar line,
+    .sidebar circle,
+    .sidebar rect,
+    .sidebar polygon,
+    .sidebar .sidebar-action-icon,
+    .sidebar .section-icon,
+    .sidebar .session-icon,
+    .sidebar-hamburger svg {
+      color: #ffffff !important;
+      stroke: #ffffff !important;
+      opacity: 1 !important;
+    }
+    .sidebar .list-item:hover {
+      background: rgba(255, 255, 255, 0.2) !important;
+      color: #ffffff !important;
+    }
+    .sidebar .list-item.active-session,
+    .sidebar .list-item.active {
+      background: rgba(255, 255, 255, 0.28) !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+    }
+    .sidebar-user-bar {
+      border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+      background: rgba(0, 0, 0, 0.12) !important;
+      color: #ffffff !important;
+    }
+    .sidebar-user-bar * {
+      color: #ffffff !important;
+      font-size: 0.95rem !important;
     }
     .sidebar-resize-handle {
       position: absolute;
@@ -4644,24 +4761,25 @@ body.bg-pattern-sparkles {
         width: 80% !important;
         max-width: 340px;
         box-shadow: 4px 0 20px rgba(0,0,0,0.5);
-        transition: transform 0.25s ease, opacity 0.25s ease !important;
+        transition: transform 0.25s ease, opacity 0.25s ease, visibility 0.25s ease !important;
         opacity: 1 !important;
         overflow: visible !important;
-        /* Force opaque background — Firefox mobile renders the
-           backdrop-filter+background combo as semi-transparent on
-           the slide-out drawer, letting the chat input model picker
-           label show through the sidebar. */
-        background: var(--panel) !important;
+        background: var(--sidebar-bg, #0d9488) !important;
+        color: #ffffff !important;
         backdrop-filter: none !important;
       }
       .sidebar.hidden {
         width: 80% !important;
-        transform: translateX(-100%);
-        pointer-events: none;
+        transform: translateX(-100%) !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
         overflow: hidden !important;
       }
       .sidebar.right-side.hidden {
-        transform: translateX(100%);
+        transform: translateX(100%) !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
       }
       .sidebar.right-side {
         left: auto; right: 0;
@@ -4672,10 +4790,13 @@ body.bg-pattern-sparkles {
         transform: translateX(-100%) !important;
         pointer-events: none !important;
         opacity: 0 !important;
+        visibility: hidden !important;
       }
       html.ody-sidebar-off .sidebar.right-side,
       html.ody-mobile-startup-sidebar-hidden .sidebar.right-side {
         transform: translateX(100%) !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
       }
       html.ody-sidebar-off .icon-rail,
       html.ody-mobile-startup-sidebar-hidden .icon-rail {
@@ -41399,3 +41520,18 @@ body.settings-sidebar-resize-active {
     display: none;
   }
 }
+
+
+/* Hide Email, Reminders, Account, Users, Password, 2FA completely */
+[data-settings-tab=" email\],
+[data-settings-tab=\reminders\],
+[data-settings-tab=\account\],
+[data-settings-tab=\users\],
+[data-settings-panel=\email\],
+[data-settings-panel=\reminders\],
+[data-settings-panel=\account\],
+[data-settings-panel=\users\],
+.settings-sidebar-label.admin-only {
+ display: none !important;
+}
+

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Odysseus — first-time setup script.
+"""HEXA — first-time setup script.
 
 Creates data directories, initializes the database, and sets up an
 initial admin user. Safe to re-run (skips what already exists).
