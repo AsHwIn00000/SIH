@@ -311,7 +311,7 @@ def _prepare_image_for_vl(image_path: str) -> tuple[str, str]:
 
         img = Image.open(image_path)
         original_size = os.path.getsize(image_path)
-        needs_resize = img.width > 1024 or img.height > 1024 or original_size > 512 * 1024
+        needs_resize = img.width > 768 or img.height > 768 or original_size > 200 * 1024
 
         if needs_resize:
             # Convert RGBA/P/LA → RGB so we can save as JPEG
@@ -327,16 +327,18 @@ def _prepare_image_for_vl(image_path: str) -> tuple[str, str]:
             elif img.mode != "RGB":
                 img = img.convert("RGB")
 
-            img.thumbnail((1024, 1024), Image.LANCZOS)
+            # Use 768px max — keeps tokens well under 4096 for qwen3-vl
+            img.thumbnail((768, 768), Image.LANCZOS)
             buf = io.BytesIO()
-            img.save(buf, format="JPEG", quality=82)
+            img.save(buf, format="JPEG", quality=80)
             compressed = buf.getvalue()
             b64 = base64.b64encode(compressed).decode("utf-8")
             logger.info(
-                "VL image compressed: %d KB → %d KB (%.0f%% reduction)",
+                "VL image compressed: %d KB → %d KB (%.0f%% reduction, size=%s)",
                 original_size // 1024,
                 len(compressed) // 1024,
                 (1 - len(compressed) / original_size) * 100,
+                f"{img.size[0]}x{img.size[1]}",
             )
             return b64, "jpeg"
 
@@ -468,7 +470,7 @@ def analyze_image_with_vl_result(image_path: str, owner: str | None = None, use_
                             "repeat_last_n": 128,
                             "top_k": 40,
                             "top_p": 0.9,
-                            "num_ctx": 8192,
+                            "num_ctx": 32768,  # qwen3-vl supports up to 128k, load with 32k
                         }
                     }
                     _r = _httpx.post(_ollama_url, json=_payload, timeout=600)
