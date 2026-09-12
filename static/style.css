@@ -41535,3 +41535,293 @@ body.settings-sidebar-resize-active {
  display: none !important;
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════
+   Zero-Egress Monitor Widget
+   ═══════════════════════════════════════════════════════════════ */
+
+#egress-monitor {
+  margin: 18px auto 0;
+  max-width: 480px;
+  background: var(--panel, rgba(255,255,255,0.04));
+  border: 1px solid var(--border, rgba(255,255,255,0.10));
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 12px;
+}
+
+.egress-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.egress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border, #555);
+  flex-shrink: 0;
+}
+
+.egress-dot--live {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  animation: egress-pulse 2s ease-in-out infinite;
+}
+
+.egress-dot--offline {
+  background: #ef4444;
+}
+
+@keyframes egress-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.egress-title {
+  font-weight: 600;
+  font-size: 12px;
+  opacity: 0.85;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.egress-badge {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #10b981;
+  border: 1px solid #10b981;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.egress-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.egress-stat {
+  flex: 1;
+  text-align: center;
+}
+
+.egress-stat-label {
+  font-size: 10px;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.egress-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg, #e2e8f0);
+}
+
+.egress-stat-sub {
+  font-size: 10px;
+  opacity: 0.45;
+  min-height: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.egress-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--border, rgba(255,255,255,0.1));
+  flex-shrink: 0;
+}
+
+.egress-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #10b981;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: rgba(16,185,129,0.08);
+  border-radius: 6px;
+  border: 1px solid rgba(16,185,129,0.2);
+}
+
+.egress-proof {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 10px;
+  opacity: 0.4;
+  line-height: 1.4;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   Multi-Document Cross-Reference Panel
+   ═══════════════════════════════════════════════════════════════ */
+
+#multidoc-panel {
+  margin: 16px auto 0;
+  max-width: 480px;
+  background: var(--panel, rgba(255,255,255,0.04));
+  border: 1px solid var(--border, rgba(255,255,255,0.10));
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 12px;
+}
+
+.multidoc-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 12px;
+  opacity: 0.85;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.multidoc-sub {
+  font-size: 11px;
+  opacity: 0.45;
+  margin-bottom: 10px;
+}
+
+.multidoc-drop {
+  border: 1.5px dashed var(--border, rgba(255,255,255,0.15));
+  border-radius: 8px;
+  padding: 14px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  font-size: 11px;
+  opacity: 0.7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.multidoc-drop:hover,
+.multidoc-drop--active {
+  border-color: var(--accent, #10b981);
+  background: rgba(16,185,129,0.05);
+  opacity: 1;
+}
+
+.multidoc-file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+  justify-content: center;
+}
+
+.multidoc-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--panel, rgba(255,255,255,0.06));
+  border: 1px solid var(--border, rgba(255,255,255,0.12));
+  border-radius: 20px;
+  padding: 3px 9px 3px 7px;
+  font-size: 11px;
+  max-width: 180px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.multidoc-remove-file {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.5;
+  padding: 0 0 0 4px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.multidoc-remove-file:hover { opacity: 1; }
+
+.multidoc-question-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.multidoc-question-input {
+  flex: 1;
+  background: var(--input-bg, rgba(255,255,255,0.05));
+  border: 1px solid var(--input-border, rgba(255,255,255,0.12));
+  border-radius: 8px;
+  color: var(--fg, #e2e8f0);
+  font-size: 11px;
+  padding: 7px 10px;
+  outline: none;
+}
+
+.multidoc-question-input:focus {
+  border-color: var(--accent, #10b981);
+}
+
+.multidoc-analyze-btn,
+.multidoc-send-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--accent, #10b981);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.multidoc-analyze-btn:hover,
+.multidoc-send-btn:hover { opacity: 0.85; }
+.multidoc-analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.multidoc-result {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(16,185,129,0.06);
+  border: 1px solid rgba(16,185,129,0.15);
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.multidoc-summary {
+  margin-bottom: 7px;
+  font-weight: 600;
+}
+
+.multidoc-doc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.multidoc-send-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 9px;
+  font-size: 12px;
+}

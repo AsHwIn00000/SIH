@@ -890,6 +890,10 @@ app.include_router(setup_contacts_routes())
 from companion import setup_companion_routes
 app.include_router(setup_companion_routes())
 
+# ── Zero-Egress Monitor + Multi-Doc routes ────────────────────────────────────
+from routes.network_routes import router as network_router
+app.include_router(network_router)
+
 # ========= ROUTES (kept in app.py) =========
 
 @app.get("/")
@@ -944,6 +948,11 @@ async def serve_library(request: Request):
 async def serve_backgrounds(request: Request):
     """Sandbox page for prototyping background effects. No auth required."""
     return serve_html_with_nonce(request, abs_join(BASE_DIR, "static/backgrounds.html"))
+
+@app.get("/restaurant")
+async def serve_restaurant(request: Request):
+    """Annachies Restaurant page with multi-lingual support. No auth required."""
+    return serve_html_with_nonce(request, abs_join(BASE_DIR, "static/restaurant.html"))
 
 @app.get("/login")
 async def serve_login(request: Request):
