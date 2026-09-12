@@ -258,6 +258,7 @@
   <link rel="modulepreload" href="/static/js/markdown.js">
   <!-- Zero-Egress Monitor + Multi-Doc Cross-Reference -->
   <script type="module" src="/static/js/zero_egress.js"></script>
+
   <!-- Hide removed/unused features from sidebar and settings -->
   <style>
     /* ── Sidebar: Compare, Deep Research, Library, Notes ── */
@@ -2568,5 +2569,60 @@
   <script type="module" src="/static/js/init.js?v=20260715freshroot3"></script>
 <script type="module" src="/static/js/a11y.js"></script>
 <script nonce="{{CSP_NONCE}}">if('serviceWorker' in navigator){navigator.serviceWorker.register('/static/sw.js').catch(()=>{});}</script>
+
+<!-- ── Zero-Egress Floating Button + Panel ──────────────────────────── -->
+<button id="egress-fab" title="Network Monitor — Zero Egress Proof" aria-label="Open network monitor">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <polyline points="9 12 11 14 15 10"/>
+  </svg>
+  <span id="egress-fab-dot"></span>
+</button>
+
+<div id="egress-panel" aria-hidden="true" role="dialog" aria-label="Network Monitor">
+  <div class="egress-panel-header">
+    <div class="egress-panel-title">
+      <span id="egress-panel-dot"></span>
+      <span>Network Monitor</span>
+    </div>
+    <span class="egress-panel-live-badge">LIVE</span>
+    <button id="egress-panel-close" aria-label="Close network monitor">×</button>
+  </div>
+
+  <div class="egress-panel-status" id="egress-panel-status">
+    <span id="egress-status-icon">✅</span>
+    <span id="egress-status-text">Zero Data Egress — AI runs 100% locally</span>
+  </div>
+
+  <div class="egress-panel-grid">
+    <div class="egress-panel-card">
+      <div class="egress-panel-card-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        Outbound (Sent)
+      </div>
+      <div class="egress-panel-card-value" id="egress-sent">0 B</div>
+      <div class="egress-panel-card-delta" id="egress-sent-delta"></div>
+    </div>
+    <div class="egress-panel-card">
+      <div class="egress-panel-card-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        Inbound (Received)
+      </div>
+      <div class="egress-panel-card-value" id="egress-recv">0 B</div>
+      <div class="egress-panel-card-delta" id="egress-recv-delta"></div>
+    </div>
+  </div>
+
+  <div class="egress-panel-uptime">
+    Session uptime: <span id="egress-uptime">0s</span>
+  </div>
+
+  <div class="egress-panel-proof">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    No cloud APIs · No telemetry · No data leaves this machine
+  </div>
+</div>
+
+<script type="module" src="/static/js/zero_egress.js"></script>
 </body>
 </html>
