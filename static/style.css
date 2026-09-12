@@ -23743,7 +23743,6 @@ body.gallery-selecting .gallery-dl-btn,
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0,0,0,0.3);
   transition: background 0.2s, transform 0.15s, border-color 0.2s;
-  position: relative;
 }
 #egress-fab:hover { background: var(--accent, #10b981); border-color: var(--accent, #10b981); color: #000; transform: scale(1.08); }
 #egress-fab.egress-fab--active { background: var(--accent, #10b981); border-color: var(--accent, #10b981); color: #000; }
