@@ -24197,3 +24197,53 @@ body.doc-view .doc-editor-pane {
 /* ?????? Entrance Animations ?????? */
 
 
+
+
+/* ── Doc editor pane: force readable dark text on white background ──────── */
+/* Prevents teal accent color bleeding into code/text in the right panel.
+   The editor should always show dark text on white regardless of theme. */
+.doc-editor-pane *,
+.doc-editor-pane textarea,
+.doc-editor-pane pre,
+.doc-editor-pane code,
+.doc-editor-pane .write-area,
+.doc-editor-pane [class*="cm-"] {
+  color: #1e293b !important;
+  background-color: transparent !important;
+}
+
+.doc-editor-pane {
+  background: #ffffff !important;
+}
+
+.doc-editor-pane textarea,
+.doc-editor-pane .write-area,
+.doc-editor-pane [contenteditable="true"] {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  caret-color: #1e293b !important;
+}
+
+/* Syntax highlighting in the doc pane - use neutral colors not teal */
+.doc-editor-pane .hljs-keyword,
+.doc-editor-pane .hljs-selector-tag,
+.doc-editor-pane .hljs-title { color: #7c3aed !important; }
+
+.doc-editor-pane .hljs-string,
+.doc-editor-pane .hljs-attr { color: #059669 !important; }
+
+.doc-editor-pane .hljs-number,
+.doc-editor-pane .hljs-literal { color: #d97706 !important; }
+
+.doc-editor-pane .hljs-comment { color: #6b7280 !important; }
+
+/* Tab bar stays light */
+.doc-editor-pane .doc-tab-bar {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+.doc-editor-pane .doc-tab { color: #374151 !important; }
+.doc-editor-pane .doc-tab.active {
+  color: #0f172a !important;
+  border-bottom: 2px solid #10b981 !important;
+}

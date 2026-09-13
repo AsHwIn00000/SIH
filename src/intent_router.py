@@ -25,7 +25,7 @@ logger = logging.getLogger("hexa.intent_router")
 # Listed in order of preference — the router tries the first installed one.
 MODEL_REGISTRY: Dict[str, list[str]] = {
     "coding":         ["qwen2.5-coder:latest", "qwen2.5-coder:7b", "qwen2.5-coder:3b", "qwen3:4b"],
-    "reasoning_math": ["deepseek-r1:latest", "deepseek-r1:7b", "qwen3.5:9b", "qwen3:4b"],
+    "reasoning_math": ["deepseek-r1:latest", "deepseek-r1:7b", "qwen3:4b", "qwen3.5:9b"],
     "vision_ocr":     ["qwen3-vl:8b", "qwen2-vl:latest", "llava:latest", "moondream:latest"],
     "general_chat":   ["qwen3.5:9b", "qwen3:4b", "qwen2.5:latest"],
 }

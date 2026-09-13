@@ -182,6 +182,8 @@ KNOWN_CONTEXT_WINDOWS = {
 
     # --- Qwen ---
     'qwen3': 131072,
+    'qwen3-vl': 32768,   # qwen3-vl vision model — use 32k to fit images without OOM
+    'qwen2-vl': 32768,   # qwen2-vl vision model
     'qwen2.5': 131072,
     'qwen2': 32768,
     'qwq': 32768,

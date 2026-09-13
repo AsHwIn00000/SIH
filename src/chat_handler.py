@@ -219,75 +219,57 @@ class ChatHandler:
                 if file_info and self.upload_handler.is_image_file(
                     file_info["name"], file_info.get("mime", "")
                 ):
-                    if main_is_vision:
-                        # Main model can see images — just note it, image is passed via build_user_content.
-                        enhanced_message = f"{enhanced_message}\n\n[Image attached: {file_info['name']}]"
-                        _m = meta_by_id.get(att_id)
-                        if _m is not None:
-                            _m["vision_model"] = sess.model or ""
-                        # If the user has hand-edited the OCR/caption via the
-                        # chat attachment dropdown, fold it in as an explicit
-                        # hint so even vision-capable models respect the
-                        # correction (otherwise the model would silently use
-                        # whatever it reads from the pixels).
-                        _vcache = os.path.join(UPLOAD_DIR, ".vision", att_id + ".txt")
-                        if os.path.exists(_vcache):
+                    # Always run VL analysis to get a text description.
+                    # Even if the model supports vision natively, the agent loop
+                    # sends messages via /v1/chat/completions which doesn't handle
+                    # the Ollama image_url format. Running VL analysis first gives
+                    # us reliable text the agent can reason about.
+                    _vcache = os.path.join(UPLOAD_DIR, ".vision", att_id + ".txt")
+                    vl_desc = None
+                    vl_model_used = get_setting("vision_model", "") or ""
+
+                    # Check cache first
+                    if os.path.exists(_vcache):
+                        try:
+                            with open(_vcache, encoding="utf-8") as _vf:
+                                cached = _vf.read().strip()
+                            if cached and not cached.startswith("["):
+                                vl_desc = cached
+                                _sync_upload_vision_to_gallery(file_info, owner, vl_desc)
+                        except Exception:
+                            vl_desc = None
+
+                    # Run VL analysis if no cache
+                    if not vl_desc:
+                        _use_ocr = any(
+                            kw in message.lower()
+                            for kw in ("ocr", "extract text", "read text", "text in",
+                                       "what does it say", "transcribe", "read this", "parse")
+                        )
+                        vl_result = analyze_image_with_vl_result(
+                            file_info["path"], owner=owner, use_ocr=_use_ocr
+                        )
+                        vl_desc = vl_result.get("text", "")
+                        vl_model_used = vl_result.get("model", "") or vl_model_used
+                        if vl_desc and not vl_desc.startswith("["):
                             try:
-                                with open(_vcache, encoding="utf-8") as _vf:
-                                    _vtext = _vf.read().strip()
-                                if _vtext:
-                                    enhanced_message += f"\n[User-corrected caption / OCR for this image — treat as authoritative]:\n{_vtext}"
-                                    _sync_upload_vision_to_gallery(file_info, owner, _vtext)
-                                    _m = meta_by_id.get(att_id)
-                                    if _m is not None:
-                                        _m["vision"] = _vtext
+                                os.makedirs(os.path.join(UPLOAD_DIR, ".vision"), exist_ok=True)
+                                with open(_vcache, "w", encoding="utf-8") as _vf:
+                                    _vf.write(vl_desc)
+                                _sync_upload_vision_to_gallery(file_info, owner, vl_desc)
                             except Exception:
                                 pass
-                    else:
-                        # Main model is text-only — use VL model for description.
-                        # Prefer the cached/user-edited text in UPLOAD_DIR/.vision/{id}.txt
-                        # so a manual correction (via the chat attachment dropdown's
-                        # editable textarea) overrides what the vision model would say.
-                        _vcache = os.path.join(UPLOAD_DIR, ".vision", att_id + ".txt")
-                        vl_desc = None
-                        vl_model = get_setting("vision_model", "") or ""
-                        if os.path.exists(_vcache):
-                            try:
-                                with open(_vcache, encoding="utf-8") as _vf:
-                                    cached_desc = _vf.read().strip()
-                                if cached_desc and not cached_desc.startswith("["):
-                                    vl_desc = cached_desc
-                                    _sync_upload_vision_to_gallery(file_info, owner, vl_desc)
-                            except Exception:
-                                vl_desc = None
-                        if not vl_desc:
-                            # Use Unlimited-OCR when the message is OCR/text-extraction oriented
-                            _use_ocr = any(
-                                kw in message.lower()
-                                for kw in ("ocr", "extract text", "read text", "text in", "what text",
-                                           "what does it say", "transcribe", "read this", "parse")
-                            )
-                            vl_result = analyze_image_with_vl_result(
-                                file_info["path"], owner=owner, use_ocr=_use_ocr
-                            )
-                            vl_desc = vl_result.get("text", "")
-                            vl_model = vl_result.get("model", "")
-                            if vl_desc and not vl_desc.startswith("["):
-                                try:
-                                    os.makedirs(os.path.join(UPLOAD_DIR, ".vision"), exist_ok=True)
-                                    with open(_vcache, "w", encoding="utf-8") as _vf:
-                                        _vf.write(vl_desc)
-                                    _sync_upload_vision_to_gallery(file_info, owner, vl_desc)
-                                except Exception:
-                                    pass
+
+                    # Inject description into message
+                    if vl_desc:
                         enhanced_message = f"{enhanced_message}\n\n[Image: {file_info['name']}]\n{vl_desc}"
-                        # Surface the description to the client live so it renders as a
-                        # collapsible "image description" on the user bubble (not just
-                        # after a refresh that re-parses the stored message).
-                        _m = meta_by_id.get(att_id)
-                        if _m is not None:
-                            _m["vision"] = vl_desc
-                            _m["vision_model"] = vl_model
+                    else:
+                        enhanced_message = f"{enhanced_message}\n\n[Image attached: {file_info['name']}]"
+
+                    _m = meta_by_id.get(att_id)
+                    if _m is not None:
+                        _m["vision"] = vl_desc or ""
+                        _m["vision_model"] = vl_model_used
 
         user_content = build_user_content(
             enhanced_message, effective_att_ids, UPLOAD_DIR, self.upload_handler,
