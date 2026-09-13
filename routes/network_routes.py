@@ -60,22 +60,13 @@ def _format_bytes(n: int) -> str:
 async def network_stats_stream(request: Request):
     """
     SSE stream of network I/O counters, emitted every second.
-
-    Each event is a JSON object:
-    {
-        "sent_total":   123,       # bytes sent since app start
-        "recv_total":   456,       # bytes received since app start
-        "sent_delta":   10,        # bytes sent in the last second
-        "recv_delta":   20,        # bytes received in the last second
-        "sent_fmt":     "123 B",   # human-readable total sent
-        "recv_fmt":     "456 B",   # human-readable total received
-        "egress_zero":  true,      # true if sent_total < 1KB (data sovereignty proof)
-        "uptime_s":     42         # seconds since monitoring started
-    }
+    Baseline is captured when THIS connection opens — so the counter
+    shows bytes sent/received during THIS session only, starting from 0.
     """
     async def generate():
-        prev_sent = _BASELINE_SENT
-        prev_recv = _BASELINE_RECV
+        # Capture baseline at connection time — shows session delta, not system total
+        _session_baseline = psutil.net_io_counters()
+        prev = _session_baseline
         start_ts = time.time()
 
         while True:
@@ -84,25 +75,21 @@ async def network_stats_stream(request: Request):
 
             try:
                 c = psutil.net_io_counters()
-                sent_total = c.bytes_sent - _BASELINE_SENT
-                recv_total = c.bytes_recv - _BASELINE_RECV
-                sent_delta = c.bytes_sent - prev_sent
-                recv_delta = c.bytes_recv - prev_recv
-                prev_sent = c.bytes_sent
-                prev_recv = c.bytes_recv
-
-                # Only count outbound from our app's process (psutil gives system-wide)
-                # We still show system-wide but flag if >0 so users can see
+                sent_total = max(0, c.bytes_sent - _session_baseline.bytes_sent)
+                recv_total = max(0, c.bytes_recv - _session_baseline.bytes_recv)
+                sent_delta = max(0, c.bytes_sent - prev.bytes_sent)
+                recv_delta = max(0, c.bytes_recv - prev.bytes_recv)
+                prev = c
                 uptime = int(time.time() - start_ts)
 
                 payload = {
-                    "sent_total": max(0, sent_total),
-                    "recv_total": max(0, recv_total),
-                    "sent_delta": max(0, sent_delta),
-                    "recv_delta": max(0, recv_delta),
-                    "sent_fmt": _format_bytes(max(0, sent_total)),
-                    "recv_fmt": _format_bytes(max(0, recv_total)),
-                    "egress_zero": sent_total < 1024,   # <1KB = essentially zero
+                    "sent_total": sent_total,
+                    "recv_total": recv_total,
+                    "sent_delta": sent_delta,
+                    "recv_delta": recv_delta,
+                    "sent_fmt": _format_bytes(sent_total),
+                    "recv_fmt": _format_bytes(recv_total),
+                    "egress_zero": sent_total < 2048,   # <2KB = essentially zero
                     "uptime_s": uptime,
                 }
                 yield f"data: {json.dumps(payload)}\n\n"
@@ -125,17 +112,13 @@ async def network_stats_stream(request: Request):
 # ── GET /api/network-stats/snapshot ──────────────────────────────────────────
 @router.get("/api/network-stats/snapshot")
 async def network_stats_snapshot():
-    """Single-shot network stats (no streaming). Used on page load."""
-    _capture_baseline()
-    c = psutil.net_io_counters()
-    sent_total = max(0, c.bytes_sent - _BASELINE_SENT)
-    recv_total = max(0, c.bytes_recv - _BASELINE_RECV)
+    """Single-shot stats — always returns 0 on fresh open since tracking is per-session."""
     return {
-        "sent_total": sent_total,
-        "recv_total": recv_total,
-        "sent_fmt": _format_bytes(sent_total),
-        "recv_fmt": _format_bytes(recv_total),
-        "egress_zero": sent_total < 1024,
+        "sent_total": 0,
+        "recv_total": 0,
+        "sent_fmt": "0 B",
+        "recv_fmt": "0 B",
+        "egress_zero": True,
     }
 
 

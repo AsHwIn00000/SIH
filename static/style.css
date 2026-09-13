@@ -23908,3 +23908,47 @@ body.gallery-selecting .gallery-dl-btn,
   margin-top: 2px;
   text-align: center;
 }
+
+
+/* ── Doc editor pane: always white/light background regardless of theme ──── */
+/* The right-side document panel should use a neutral background so text
+   is always readable. The teal sidebar colour must never bleed into the
+   editor content area. */
+.doc-editor-pane,
+.doc-editor-pane .doc-tab-bar,
+.doc-editor-pane .doc-body,
+.doc-editor-pane .doc-content,
+.doc-editor-pane .editor-area,
+.doc-editor-pane textarea,
+.doc-editor-pane .write-area,
+.doc-editor-pane [class*="editor"],
+body.doc-view .doc-editor-pane {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  color-scheme: light !important;
+}
+
+/* Keep borders and dividers neutral */
+.doc-editor-pane .doc-tab-bar {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.doc-editor-pane .doc-tab {
+  color: #374151 !important;
+}
+
+.doc-editor-pane .doc-tab.active {
+  background: #ffffff !important;
+  border-bottom: 2px solid #10b981 !important;
+  color: #0f172a !important;
+}
+
+/* Toolbar buttons in doc pane — keep light */
+.doc-editor-pane .format-btn,
+.doc-editor-pane .doc-toolbar button {
+  color: #374151 !important;
+}
+.doc-editor-pane .format-btn:hover {
+  background: #f1f5f9 !important;
+}
