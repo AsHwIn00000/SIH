@@ -279,14 +279,11 @@ class ChatHandler:
             resolved_uploads=files_by_id,
         )
 
-        # Strip image_url entries for text-only models (VL description is already in the text)
-        if not vision_enabled and isinstance(user_content, list):
-            text_parts = [
-                item.get("text", "") for item in user_content
-                if isinstance(item, dict) and item.get("type") == "text"
-            ]
-            user_content = "\n".join(text_parts).strip() if text_parts else enhanced_message
-        elif not main_is_vision and isinstance(user_content, list):
+        # Always strip raw image_url entries — the VL description is already
+        # injected into enhanced_message as text. Sending raw base64 images
+        # alongside the text description confuses the model (it sees both and
+        # doubts the text, saying "no image exists in this context").
+        if isinstance(user_content, list):
             text_parts = [
                 item.get("text", "") for item in user_content
                 if isinstance(item, dict) and item.get("type") == "text"

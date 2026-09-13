@@ -1627,6 +1627,16 @@ def setup_chat_routes(
                         sess.model = _resolved_model
                     else:
                         logger.debug("[intent-router] category=%s → keeping %s", _category, sess.model)
+
+                    # For vision/image tasks: force chat mode so browser tools
+                    # are NOT injected into the prompt. qwen3-vl:8b gets confused
+                    # when it sees 30 browser tools and thinks it's a browser agent.
+                    # The image description is already in the text — no tools needed.
+                    if _route.get("prefer_chat_mode") and chat_mode == "agent":
+                        logger.info("[intent-router] switching agent→chat for vision task")
+                        nonlocal _effective_mode
+                        chat_mode = "chat"
+                        _effective_mode = "chat"
             except Exception as _re:
                 logger.warning("[intent-router] failed, keeping session model: %s", _re)
             # ─────────────────────────────────────────────────────────────

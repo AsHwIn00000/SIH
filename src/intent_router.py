@@ -132,4 +132,5 @@ def route_model(
         "category": category,
         "auto_selected": True,
         "candidates": candidates,
+        "prefer_chat_mode": category == "vision_ocr",  # vision tasks don't need browser tools
     }
