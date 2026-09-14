@@ -470,10 +470,11 @@ def analyze_image_with_vl_result(image_path: str, owner: str | None = None, use_
                             "repeat_last_n": 128,
                             "top_k": 40,
                             "top_p": 0.9,
-                            "num_ctx": 32768,  # qwen3-vl supports up to 128k, load with 32k
+                            "num_ctx": 4096,     # match what Ollama loaded — don't force reload
+                            "num_predict": 800,  # enough for a full description, prevents timeout
                         }
                     }
-                    _r = _httpx.post(_ollama_url, json=_payload, timeout=600)
+                    _r = _httpx.post(_ollama_url, json=_payload, timeout=180)
                     if _r.status_code != 200:
                         raise RuntimeError(f"Ollama returned {_r.status_code}: {_r.text[:200]}")
                     description = _r.json().get("message", {}).get("content", "")
