@@ -1581,8 +1581,10 @@ def setup_chat_routes(
             set_session_mode(session, _effective_mode)
 
         async def stream_with_save() -> AsyncGenerator[str, None]:
-            # _effective_mode is read-only here; closure captures it from
-            # the outer scope. (Was `nonlocal` but never reassigned.)
+            # nonlocal declarations — needed for intent router to switch modes
+            nonlocal chat_mode, _effective_mode
+            # _effective_mode and chat_mode may be reassigned by the intent router
+            # (vision tasks switch agent→chat to avoid browser-tool confusion).
             research_sources = None
 
             # ── Auto Model Router ──────────────────────────────────────────
@@ -1634,7 +1636,6 @@ def setup_chat_routes(
                     # The image description is already in the text — no tools needed.
                     if _route.get("prefer_chat_mode") and chat_mode == "agent":
                         logger.info("[intent-router] switching agent→chat for vision task")
-                        nonlocal _effective_mode
                         chat_mode = "chat"
                         _effective_mode = "chat"
             except Exception as _re:
