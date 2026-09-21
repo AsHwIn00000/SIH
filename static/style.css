@@ -24247,3 +24247,8 @@ body.doc-view .doc-editor-pane {
   color: #0f172a !important;
   border-bottom: 2px solid #10b981 !important;
 }
+
+
+/* ── Hide User/login bar (AUTH_ENABLED=false — no login needed) ── */
+#sidebar-user-bar { display: none !important; }
+.sidebar-inner { padding-bottom: 8px !important; }

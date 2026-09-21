@@ -252,10 +252,13 @@ def needs_auto_name(name: str) -> bool:
 
 
 async def auto_name_session(session_manager, sess):
-    """Generate a short title for a session from its first user message."""
+    """Generate a short title for a session from its first user message.
+
+    Uses fast keyword extraction first (instant, no LLM). Falls back to
+    LLM-generated title if the message is too short or needs more context.
+    """
     try:
-        from src.llm_core import llm_call_async
-        from src.task_endpoint import resolve_task_endpoint
+        import re as _re
 
         # Find first user message
         first_msg = ""
@@ -273,6 +276,29 @@ async def auto_name_session(session_manager, sess):
         if not first_msg:
             return
 
+        # ── Fast path: extract first 5-7 meaningful words ──────────────
+        # Strip document injection markers like [Image: ...] [Document content...]
+        clean = _re.sub(r'\[(?:Image|Document content|PDF content)[^\]]*\].*', '', first_msg, flags=_re.DOTALL).strip()
+        clean = _re.sub(r'\s+', ' ', clean).strip()
+
+        # Skip filler words, take first meaningful words
+        STOP = {'a','an','the','is','are','was','were','i','my','me','please','can','you',
+                'do','to','for','of','in','on','at','with','and','or','it','this','that','what','how'}
+        words = [w for w in _re.findall(r"[a-zA-Z0-9']+", clean) if w.lower() not in STOP and len(w) > 1]
+        quick_title = " ".join(words[:6]).strip()
+
+        # If we got a decent title from keyword extraction, use it immediately
+        if quick_title and len(quick_title) >= 8:
+            # Capitalize properly
+            quick_title = quick_title[0].upper() + quick_title[1:] if quick_title else quick_title
+            session_manager.update_session_name(sess.id, quick_title)
+            logger.info(f"Auto-named session {sess.id}: {quick_title}")
+            return
+
+        # ── Slow path: use LLM for very short/unclear messages ──────────
+        from src.llm_core import llm_call_async
+        from src.task_endpoint import resolve_task_endpoint
+
         owner = getattr(sess, "owner", None)
         t_url, t_model, t_headers = resolve_task_endpoint(
             sess.endpoint_url, sess.model, sess.headers, owner=owner
@@ -281,32 +307,29 @@ async def auto_name_session(session_manager, sess):
             logger.debug("[auto-name] No model provided, skipping")
             return
 
-        # max_tokens big enough that reasoning models (Minimax M2,
-        # DeepSeek R1, QwQ, etc.) have headroom for <think>…</think>
-        # plus the actual title — 200 used to clip them mid-reasoning
-        # so strip_think left an empty string and no rename happened.
-        # Timeout matches: 60s gives slow local reasoners room to finish.
         title = await llm_call_async(
             t_url,
             t_model,
             [
-                {"role": "system", "content": "Generate a short title (3-6 words, no quotes) for a conversation that starts with this message. Reply with ONLY the title, nothing else. Do NOT include any thinking, reasoning, or explanation — just the title."},
+                {"role": "system", "content": "Generate a short title (3-6 words, no quotes) for a conversation that starts with this message. Reply with ONLY the title, nothing else."},
                 {"role": "user", "content": first_msg},
             ],
             temperature=0.3,
-            max_tokens=4096,
+            max_tokens=50,
             headers=t_headers,
-            timeout=60,
+            timeout=20,
         )
 
         title = title.strip().strip('"\'').strip()
-        # Strip <think>/<thinking> blocks (closed, dangling, or stray tags)
-        # via the central helper.
         from src.text_helpers import strip_think
         title = strip_think(title, prose=False, prompt_echo=False)
         if title and len(title) < 80:
             session_manager.update_session_name(sess.id, title)
             logger.info(f"Auto-named session {sess.id}: {title}")
+
+    except Exception as e:
+        import traceback
+        logger.error(f"Auto-name failed for {sess.id}: {e}\n{traceback.format_exc()}")
 
     except Exception as e:
         import traceback
